@@ -6,6 +6,7 @@ export type StepStatus = "idle" | "running" | "completed" | "failed";
 export interface UploadResponse {
   job_id: string;
   image_url: string;
+  image_data_url?: string;
   width: number;
   height: number;
   format: string;

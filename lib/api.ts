@@ -24,7 +24,8 @@ async function handle<T>(res: Response): Promise<T> {
 }
 
 export function absoluteImageUrl(imageUrl: string): string {
-  return imageUrl.startsWith("http") ? imageUrl : `${API_BASE}${imageUrl}`;
+  if (imageUrl.startsWith("http") || imageUrl.startsWith("data:")) return imageUrl;
+  return `${API_BASE}${imageUrl}`;
 }
 
 export async function uploadImage(file: File): Promise<UploadResponse> {

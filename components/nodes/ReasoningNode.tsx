@@ -45,7 +45,6 @@ export default function ReasoningNode() {
   return (
     <NodeShell
       title="4. Lập luận và kiểm tra ảo giác"
-      subtitle={rerank ? `Mô hình: ${rerank.model_name}` : "LLM chọn lại chú thích"}
       status={steps.rerank.status}
       onRun={() => runStep("rerank").catch(() => {})}
       runDisabled={!isReady("rerank")}

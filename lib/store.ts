@@ -110,7 +110,7 @@ export const usePipelineStore = create<PipelineState>((set, get) => ({
       const res = await uploadImage(file);
       set((state) => ({
         jobId: res.job_id,
-        imageUrl: absoluteImageUrl(res.image_url),
+        imageUrl: res.image_data_url ?? absoluteImageUrl(res.image_url),
         imageMeta: res,
         steps: { ...state.steps, upload: { status: "completed" } },
       }));
