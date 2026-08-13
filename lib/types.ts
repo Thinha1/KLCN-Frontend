@@ -62,7 +62,6 @@ export interface RankingOut {
   candidate_id: number;
   rank: number;
   score: number;
-  reason: string;
   text: string;
 }
 
@@ -76,10 +75,13 @@ export interface HallucinationOut {
 export interface RerankStepResponse {
   ranking: RankingOut[];
   selected_caption: string | null;
-  reasoning: string;
   hallucinations: HallucinationOut[];
   model_name: string;
   latency_ms: number;
+}
+
+export interface RerankPromptPreview {
+  prompt: string;
 }
 
 export interface FinalStepResponse {

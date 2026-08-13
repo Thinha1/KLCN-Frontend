@@ -3,6 +3,7 @@ import type {
   ClipScoreStepResponse,
   DetectStepResponse,
   FinalStepResponse,
+  RerankPromptPreview,
   RerankStepResponse,
   UploadResponse,
 } from "./types";
@@ -41,8 +42,13 @@ export async function uploadImage(file: File): Promise<UploadResponse> {
 // The reasoning/rerank step calls a real LLM endpoint that can take well over a minute to
 // respond, so this deliberately has no client-side timeout -- only the AbortSignal callers
 // choose to pass (e.g. on unmount) can cut it short.
-async function post<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, { method: "POST", headers: API_HEADERS, signal });
+async function post<T>(path: string, signal?: AbortSignal, body?: unknown): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: body !== undefined ? { ...API_HEADERS, "Content-Type": "application/json" } : API_HEADERS,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+    signal,
+  });
   return handle<T>(res);
 }
 
@@ -60,8 +66,11 @@ export const runDetectStep = (jobId: string, signal?: AbortSignal) =>
 export const runClipScoreStep = (jobId: string, signal?: AbortSignal) =>
   post<ClipScoreStepResponse>(`/api/jobs/${jobId}/steps/clipscore`, signal);
 
-export const runRerankStep = (jobId: string, signal?: AbortSignal) =>
-  post<RerankStepResponse>(`/api/jobs/${jobId}/steps/rerank`, signal);
+export const runRerankStep = (jobId: string, prompt?: string, signal?: AbortSignal) =>
+  post<RerankStepResponse>(`/api/jobs/${jobId}/steps/rerank`, signal, { prompt: prompt || null });
+
+export const getRerankPromptPreview = (jobId: string, signal?: AbortSignal) =>
+  get<RerankPromptPreview>(`/api/jobs/${jobId}/steps/rerank/prompt`, signal);
 
 export const getFinalStep = (jobId: string, signal?: AbortSignal) =>
   get<FinalStepResponse>(`/api/jobs/${jobId}/steps/final`, signal);
