@@ -12,7 +12,7 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
-export default function UploadNode() {
+export default function UploadNode({ selected }: { selected?: boolean }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { imageUrl, imageMeta, steps, upload, runAll } = usePipelineStore(
     useShallow((s) => ({
@@ -41,6 +41,7 @@ export default function UploadNode() {
       status={steps.upload.status}
       hasTarget={false}
       width={280}
+      selected={selected}
     >
       <input
         ref={inputRef}

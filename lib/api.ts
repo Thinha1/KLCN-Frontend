@@ -8,6 +8,9 @@ import type {
 } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_HEADERS = {
+  "ngrok-skip-browser-warning": "true",
+};
 
 async function handle<T>(res: Response): Promise<T> {
   if (!res.ok) {
@@ -31,7 +34,7 @@ export function absoluteImageUrl(imageUrl: string): string {
 export async function uploadImage(file: File): Promise<UploadResponse> {
   const form = new FormData();
   form.append("image", file);
-  const res = await fetch(`${API_BASE}/api/jobs`, { method: "POST", body: form });
+  const res = await fetch(`${API_BASE}/api/jobs`, { method: "POST", headers: API_HEADERS, body: form });
   return handle<UploadResponse>(res);
 }
 
@@ -39,12 +42,12 @@ export async function uploadImage(file: File): Promise<UploadResponse> {
 // respond, so this deliberately has no client-side timeout -- only the AbortSignal callers
 // choose to pass (e.g. on unmount) can cut it short.
 async function post<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, { method: "POST", signal });
+  const res = await fetch(`${API_BASE}${path}`, { method: "POST", headers: API_HEADERS, signal });
   return handle<T>(res);
 }
 
 async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, { signal });
+  const res = await fetch(`${API_BASE}${path}`, { headers: API_HEADERS, signal });
   return handle<T>(res);
 }
 

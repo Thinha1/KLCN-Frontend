@@ -6,7 +6,7 @@ import { labelColor } from "@/lib/colors";
 import { usePipelineStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 
-export default function DetectionNode() {
+export default function DetectionNode({ selected }: { selected?: boolean }) {
   const { imageUrl, imageMeta, objects, steps, isReady, runStep } = usePipelineStore(
     useShallow((s) => ({
       imageUrl: s.imageUrl,
@@ -28,6 +28,7 @@ export default function DetectionNode() {
       onRun={() => runStep("detect").catch(() => {})}
       runDisabled={!isReady("detect")}
       width={320}
+      selected={selected}
     >
       {!objects || !imageUrl || !imageMeta ? (
         <p className="text-gray-400">Chưa chạy. Bấm Chạy để nhận diện vật thể.</p>

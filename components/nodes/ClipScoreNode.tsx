@@ -5,7 +5,7 @@ import { clipScoreColor } from "@/lib/colors";
 import { usePipelineStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 
-export default function ClipScoreNode() {
+export default function ClipScoreNode({ selected }: { selected?: boolean }) {
   const { scores, steps, isReady, runStep } = usePipelineStore(
     useShallow((s) => ({
       scores: s.scores,
@@ -23,6 +23,7 @@ export default function ClipScoreNode() {
       onRun={() => runStep("clipscore").catch(() => {})}
       runDisabled={!isReady("clipscore")}
       width={320}
+      selected={selected}
     >
       {!scores ? (
         <p className="text-gray-400">Chưa chạy. Bấm Chạy để tính CLIPScore.</p>

@@ -4,7 +4,7 @@ import NodeShell from "../NodeShell";
 import { usePipelineStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 
-export default function CaptionNode() {
+export default function CaptionNode({ selected }: { selected?: boolean }) {
   const { candidates, steps, isReady, runStep } = usePipelineStore(
     useShallow((s) => ({
       candidates: s.candidates,
@@ -22,6 +22,7 @@ export default function CaptionNode() {
       onRun={() => runStep("caption").catch(() => {})}
       runDisabled={!isReady("caption")}
       width={340}
+      selected={selected}
     >
       {!candidates ? (
         <p className="text-gray-400">Chưa chạy. Bấm Chạy để sinh các chú thích ứng viên.</p>

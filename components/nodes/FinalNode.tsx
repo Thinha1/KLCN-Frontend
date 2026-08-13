@@ -4,7 +4,7 @@ import NodeShell from "../NodeShell";
 import { usePipelineStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 
-export default function FinalNode() {
+export default function FinalNode({ selected }: { selected?: boolean }) {
   const { final, steps, isReady, runStep } = usePipelineStore(
     useShallow((s) => ({
       final: s.final,
@@ -24,6 +24,7 @@ export default function FinalNode() {
       runLabel="Xem kết quả"
       hasSource={false}
       width={320}
+      selected={selected}
     >
       {!final ? (
         <p className="text-gray-400">Chưa có kết quả. Hoàn tất Bước 4 rồi bấm nút bên dưới.</p>

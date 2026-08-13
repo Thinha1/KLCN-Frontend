@@ -31,7 +31,7 @@ function renderHighlighted(text: string, flags: HallucinationOut[]): ReactNode[]
   });
 }
 
-export default function ReasoningNode() {
+export default function ReasoningNode({ selected }: { selected?: boolean }) {
   const { rerank, steps, isReady, runStep } = usePipelineStore(
     useShallow((s) => ({
       rerank: s.rerank,
@@ -50,6 +50,7 @@ export default function ReasoningNode() {
       runDisabled={!isReady("rerank")}
       runLabel="Chạy (có thể mất 1-2 phút)"
       width={420}
+      selected={selected}
     >
       {!rerank ? (
         <p className="text-gray-400">

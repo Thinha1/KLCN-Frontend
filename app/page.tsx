@@ -1,6 +1,6 @@
 "use client";
 
-import { Background, ReactFlow, type Edge, type Node } from "@xyflow/react";
+import { Background, Controls, ReactFlow, type Edge, type Node, useEdgesState, useNodesState } from "@xyflow/react";
 import { useState } from "react";
 
 import ClipScoreNode from "@/components/nodes/ClipScoreNode";
@@ -22,12 +22,12 @@ const nodeTypes = {
 };
 
 const initialNodes: Node[] = [
-  { id: "upload", type: "upload", position: { x: 0, y: 170 }, data: {} },
-  { id: "caption2a", type: "caption2a", position: { x: 340, y: 0 }, data: {} },
-  { id: "detect2b", type: "detect2b", position: { x: 340, y: 380 }, data: {} },
-  { id: "clipscore3", type: "clipscore3", position: { x: 760, y: 0 }, data: {} },
-  { id: "reasoning4", type: "reasoning4", position: { x: 1160, y: 130 }, data: {} },
-  { id: "final5", type: "final5", position: { x: 1660, y: 170 }, data: {} },
+  { id: "upload", type: "upload", position: { x: 0, y: 170 }, data: {}, style: { width: 300 } },
+  { id: "caption2a", type: "caption2a", position: { x: 340, y: 0 }, data: {}, style: { width: 380 } },
+  { id: "detect2b", type: "detect2b", position: { x: 340, y: 380 }, data: {}, style: { width: 360 } },
+  { id: "clipscore3", type: "clipscore3", position: { x: 760, y: 0 }, data: {}, style: { width: 360 } },
+  { id: "reasoning4", type: "reasoning4", position: { x: 1160, y: 130 }, data: {}, style: { width: 460 } },
+  { id: "final5", type: "final5", position: { x: 1660, y: 170 }, data: {}, style: { width: 360 } },
 ];
 
 const initialEdges: Edge[] = [
@@ -40,8 +40,8 @@ const initialEdges: Edge[] = [
 ];
 
 export default function PipelinePage() {
-  const [nodes] = useState(initialNodes);
-  const [edges] = useState(initialEdges);
+  const [nodes, , onNodesChange] = useNodesState(initialNodes);
+  const [edges, , onEdgesChange] = useEdgesState(initialEdges);
   const { jobId, reset, runAll } = usePipelineStore(
     useShallow((s) => ({
       jobId: s.jobId,
@@ -94,16 +94,18 @@ export default function PipelinePage() {
         <ReactFlow
           nodes={nodes}
           edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
           nodeTypes={nodeTypes}
           nodesDraggable
           nodesConnectable={false}
-          elementsSelectable={false}
+          elementsSelectable
           fitView
           fitViewOptions={{ padding: 0.2 }}
           proOptions={{ hideAttribution: true }}
         >
           <Background />
-          {/* <Controls /> */}
+          <Controls />
         </ReactFlow>
       </div>
     </div>
