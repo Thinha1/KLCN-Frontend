@@ -1,6 +1,6 @@
 "use client";
 
-import { Background, Controls, ReactFlow, type Edge, type Node, useEdgesState, useNodesState } from "@xyflow/react";
+import { Background, ReactFlow, type Edge, type Node, useEdgesState, useNodesState } from "@xyflow/react";
 import { useState } from "react";
 
 import ClipScoreNode from "@/components/nodes/ClipScoreNode";
@@ -42,11 +42,13 @@ const initialEdges: Edge[] = [
 export default function PipelinePage() {
   const [nodes, , onNodesChange] = useNodesState(initialNodes);
   const [edges, , onEdgesChange] = useEdgesState(initialEdges);
-  const { jobId, reset, runAll } = usePipelineStore(
+  const { jobId, reset, runAll, autoRunMode, setAutoRunMode } = usePipelineStore(
     useShallow((s) => ({
       jobId: s.jobId,
       reset: s.reset,
       runAll: s.runAll,
+      autoRunMode: s.autoRunMode,
+      setAutoRunMode: s.setAutoRunMode,
     }))
   );
   const [runningAll, setRunningAll] = useState(false);
@@ -74,6 +76,29 @@ export default function PipelinePage() {
         </div>
         <div className="flex items-center gap-2">
           {runAllError && <span className="text-[11px] text-red-600">{runAllError}</span>}
+          <div
+            className="flex gap-0.5 rounded-md bg-gray-100 p-0.5 text-xs font-medium"
+            title={
+              autoRunMode
+                ? "Sau khi tải ảnh, toàn bộ pipeline sẽ tự chạy."
+                : 'Sau khi tải ảnh, bấm "Chạy" ở từng bước (hoặc "Chạy tất cả").'
+            }
+          >
+            <button
+              type="button"
+              onClick={() => setAutoRunMode(true)}
+              className={`rounded px-2 py-1 ${autoRunMode ? "bg-white text-indigo-600 shadow-sm" : "text-gray-500"}`}
+            >
+              Tự động
+            </button>
+            <button
+              type="button"
+              onClick={() => setAutoRunMode(false)}
+              className={`rounded px-2 py-1 ${!autoRunMode ? "bg-white text-indigo-600 shadow-sm" : "text-gray-500"}`}
+            >
+              Thủ công
+            </button>
+          </div>
           <button
             onClick={handleRunAll}
             disabled={!jobId || runningAll}
@@ -105,7 +130,6 @@ export default function PipelinePage() {
           proOptions={{ hideAttribution: true }}
         >
           <Background />
-          <Controls />
         </ReactFlow>
       </div>
     </div>

@@ -3,7 +3,6 @@ import { create } from "zustand";
 import {
   absoluteImageUrl,
   getFinalStep,
-  getRerankPromptPreview,
   runCaptionStep,
   runClipScoreStep,
   runDetectStep,
@@ -59,18 +58,13 @@ interface PipelineState {
   rerank: RerankStepResponse | null;
   final: FinalStepResponse | null;
 
-  // User-editable prompt sent to the LLM in the rerank step. `rerankPrompt` is the text
-  // currently in the textarea (seeded from the backend's default once its inputs are ready);
-  // `rerankPromptTouched` tracks whether the user edited it so re-seeding on rerun doesn't
-  // clobber their changes.
-  rerankPrompt: string;
-  rerankPromptTouched: boolean;
-  rerankPromptLoading: boolean;
+  // Whether the pipeline runs all steps automatically right after upload ("auto", the
+  // long-standing default) or waits for the user to press "Run" on each node ("manual").
+  autoRunMode: boolean;
 
   reset: () => void;
   upload: (file: File) => Promise<void>;
-  setRerankPrompt: (prompt: string) => void;
-  loadDefaultRerankPrompt: (force?: boolean) => Promise<void>;
+  setAutoRunMode: (auto: boolean) => void;
   runStep: (step: Exclude<StepKey, "upload">) => Promise<void>;
   runAll: () => Promise<void>;
   isReady: (step: StepKey) => boolean;
@@ -86,10 +80,10 @@ export const usePipelineStore = create<PipelineState>((set, get) => ({
   scores: null,
   rerank: null,
   final: null,
-  rerankPrompt: "",
-  rerankPromptTouched: false,
-  rerankPromptLoading: false,
+  autoRunMode: true,
 
+  // Note: `autoRunMode` is intentionally left out of reset()/upload()'s cleared fields --
+  // it is a user preference for how the pipeline behaves, not per-job state.
   reset: () =>
     set({
       jobId: null,
@@ -101,9 +95,6 @@ export const usePipelineStore = create<PipelineState>((set, get) => ({
       scores: null,
       rerank: null,
       final: null,
-      rerankPrompt: "",
-      rerankPromptTouched: false,
-      rerankPromptLoading: false,
     }),
 
   isReady: (step) => {
@@ -122,9 +113,6 @@ export const usePipelineStore = create<PipelineState>((set, get) => ({
       scores: null,
       rerank: null,
       final: null,
-      rerankPrompt: "",
-      rerankPromptTouched: false,
-      rerankPromptLoading: false,
     });
     try {
       const res = await uploadImage(file);
@@ -142,22 +130,7 @@ export const usePipelineStore = create<PipelineState>((set, get) => ({
     }
   },
 
-  setRerankPrompt: (prompt) => set({ rerankPrompt: prompt, rerankPromptTouched: true }),
-
-  loadDefaultRerankPrompt: async (force = false) => {
-    const { jobId, rerankPromptTouched } = get();
-    if (!jobId || !get().isReady("rerank") || (rerankPromptTouched && !force)) return;
-    set({ rerankPromptLoading: true });
-    try {
-      const res = await getRerankPromptPreview(jobId);
-      set({ rerankPrompt: res.prompt, rerankPromptTouched: false });
-    } catch {
-      // Preview is a convenience only -- the user can still type a prompt manually, and
-      // running the step with an empty prompt falls back to the backend's own default.
-    } finally {
-      set({ rerankPromptLoading: false });
-    }
-  },
+  setAutoRunMode: (auto) => set({ autoRunMode: auto }),
 
   runStep: async (step) => {
     const { jobId } = get();
@@ -192,7 +165,7 @@ export const usePipelineStore = create<PipelineState>((set, get) => ({
           break;
         }
         case "rerank": {
-          const res = await runRerankStep(jobId, get().rerankPrompt);
+          const res = await runRerankStep(jobId);
           set((state) => ({
             rerank: res,
             steps: { ...state.steps, rerank: { status: "completed", latencyMs: res.latency_ms } },

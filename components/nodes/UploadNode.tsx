@@ -14,13 +14,14 @@ function formatBytes(bytes: number): string {
 
 export default function UploadNode({ selected }: { selected?: boolean }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const { imageUrl, imageMeta, steps, upload, runAll } = usePipelineStore(
+  const { imageUrl, imageMeta, steps, upload, runAll, autoRunMode } = usePipelineStore(
     useShallow((s) => ({
       imageUrl: s.imageUrl,
       imageMeta: s.imageMeta,
       steps: s.steps,
       upload: s.upload,
       runAll: s.runAll,
+      autoRunMode: s.autoRunMode,
     }))
   );
 
@@ -28,7 +29,7 @@ export default function UploadNode({ selected }: { selected?: boolean }) {
     if (!file) return;
     try {
       await upload(file);
-      await runAll();
+      if (autoRunMode) await runAll();
     } catch {
       // status is already recorded as "failed" by the store; nothing else to do here.
     }
@@ -57,7 +58,7 @@ export default function UploadNode({ selected }: { selected?: boolean }) {
           className="flex w-full flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed border-gray-300 py-6 text-gray-500 hover:border-indigo-400 hover:text-indigo-500"
         >
           <span className="text-2xl">+</span>
-          <span>Chọn ảnh để tự chạy pipeline</span>
+          <span>{autoRunMode ? "Chọn ảnh để tự chạy pipeline" : "Chọn ảnh để bắt đầu"}</span>
         </button>
       ) : (
         <div className="space-y-2">

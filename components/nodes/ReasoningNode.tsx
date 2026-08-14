@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
 import NodeShell from "../NodeShell";
+import { buildRerankPromptPreview } from "@/lib/prompt";
 import { usePipelineStore } from "@/lib/store";
 import type { HallucinationOut } from "@/lib/types";
 import { useShallow } from "zustand/react/shallow";
@@ -31,39 +32,30 @@ function renderHighlighted(text: string, flags: HallucinationOut[]): ReactNode[]
 }
 
 export default function ReasoningNode({ selected }: { selected?: boolean }) {
-  const {
-    rerank,
-    steps,
-    isReady,
-    runStep,
-    rerankPrompt,
-    rerankPromptLoading,
-    setRerankPrompt,
-    loadDefaultRerankPrompt,
-  } = usePipelineStore(
+  const { rerank, steps, isReady, runStep, objects, scores } = usePipelineStore(
     useShallow((s) => ({
       rerank: s.rerank,
       steps: s.steps,
       isReady: s.isReady,
       runStep: s.runStep,
-      rerankPrompt: s.rerankPrompt,
-      rerankPromptLoading: s.rerankPromptLoading,
-      setRerankPrompt: s.setRerankPrompt,
-      loadDefaultRerankPrompt: s.loadDefaultRerankPrompt,
+      objects: s.objects,
+      scores: s.scores,
     }))
   );
 
-  // Seed the textarea with the backend's default prompt as soon as its inputs (candidates +
-  // objects + CLIPScore) are ready, so the user edits a real prompt instead of a blank box.
-  useEffect(() => {
-    if (isReady("rerank")) loadDefaultRerankPrompt();
-  }, [isReady, loadDefaultRerankPrompt]);
-
+  const [showPrompt, setShowPrompt] = useState(false);
   const ready = isReady("rerank");
+
+  // Built straight from data already in the store (candidates + objects + CLIPScore) --
+  // shows instantly, no extra API round trip needed just to preview the prompt.
+  const rerankPrompt = useMemo(
+    () => (ready && scores ? buildRerankPromptPreview(scores, objects ?? []) : ""),
+    [ready, scores, objects]
+  );
 
   return (
     <NodeShell
-      title="4. Lập luận và kiểm tra ảo giác"
+      title="4. Suy luận và kiểm tra ảo giác"
       status={steps.rerank.status}
       onRun={() => runStep("rerank").catch(() => {})}
       runDisabled={!ready}
@@ -79,29 +71,19 @@ export default function ReasoningNode({ selected }: { selected?: boolean }) {
             </span>
             <button
               type="button"
-              onClick={() => loadDefaultRerankPrompt(true)}
-              disabled={!ready || rerankPromptLoading}
-              className="text-[10px] font-medium text-indigo-600 hover:underline disabled:text-gray-300"
+              onClick={() => setShowPrompt((v) => !v)}
+              className="text-[10px] font-medium text-indigo-600 hover:underline"
             >
-              Nạp prompt mặc định
+              {showPrompt ? "Ẩn prompt" : "Hiện prompt"}
             </button>
           </div>
-          <textarea
-            value={rerankPrompt}
-            onChange={(e) => setRerankPrompt(e.target.value)}
-            disabled={!ready || steps.rerank.status === "running"}
-            placeholder={
-              ready
-                ? rerankPromptLoading
-                  ? "Đang nạp prompt mặc định…"
-                  : "Prompt mặc định sẽ tự nạp khi bước 2A/2B/3 hoàn tất."
-                : "Hoàn tất sinh chú thích, phát hiện vật thể và CLIPScore trước."
-            }
-            className="h-32 w-full resize-y rounded-md border border-gray-200 bg-white p-2 font-mono text-[11px] text-slate-700 disabled:bg-gray-50 disabled:text-gray-400"
-          />
-          <p className="mt-1 text-[10px] text-gray-400">
-            Có thể chỉnh sửa tự do trước khi chạy; prompt đã bao gồm CLIPScore của từng ứng viên.
-          </p>
+          {showPrompt && (
+            <textarea
+              readOnly
+              value={ready ? rerankPrompt || "(trống)" : "Hoàn tất sinh chú thích, phát hiện vật thể và CLIPScore trước."}
+              className="h-32 w-full resize-y rounded-md border border-gray-200 bg-gray-50 p-2 font-mono text-[11px] text-slate-600"
+            />
+          )}
         </div>
 
         {!rerank ? (
