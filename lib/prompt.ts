@@ -21,7 +21,6 @@ export function buildRerankPromptPreview(scores: ClipScoreOut[], objects: Detect
     "Select the single best caption. Avoid hallucinated objects, broken <unk> text, and vague captions. " +
       "When candidates are otherwise similar, prefer the higher CLIPScore.",
     `Objects: ${objectLabels}`,
-    "Human actions: not provided",
     `Scene sentences: ${formatSceneSentences(scores)}`,
     "Rank these captions from best to worst (CLIPScore is 0-1, higher is better):",
   ];
