@@ -58,11 +58,19 @@ export interface ClipScoreStepResponse {
   latency_ms: number;
 }
 
+export interface FormulaBreakdownOut {
+  s_base: number;
+  s_align: number;
+  s_belief: number;
+  s_conf: number;
+}
+
 export interface RankingOut {
   candidate_id: number;
   rank: number;
   score: number;
   text: string;
+  formula_breakdown: FormulaBreakdownOut | null;
 }
 
 export interface HallucinationOut {
@@ -72,11 +80,16 @@ export interface HallucinationOut {
   source: "llm" | "heuristic_guess";
 }
 
+export type RerankMode = "llm" | "formula";
+
 export interface RerankStepResponse {
   ranking: RankingOut[];
   selected_caption: string | null;
   hallucinations: HallucinationOut[];
   model_name: string;
+  // Which method actually produced this result -- may differ from what was requested if "llm"
+  // was picked but the LLM wasn't configured/failed and it fell back to "formula".
+  mode: RerankMode;
   latency_ms: number;
 }
 

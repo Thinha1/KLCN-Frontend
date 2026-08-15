@@ -14,6 +14,7 @@ import type {
   ClipScoreOut,
   DetectedObjectOut,
   FinalStepResponse,
+  RerankMode,
   RerankStepResponse,
   StepKey,
   StepStatus,
@@ -62,9 +63,15 @@ interface PipelineState {
   // long-standing default) or waits for the user to press "Run" on each node ("manual").
   autoRunMode: boolean;
 
+  // Which reranker the rerank step (4) uses: "llm" calls a real LLM (falls back to "formula"
+  // if it isn't configured or fails -- see rerank.mode in the response for what actually ran);
+  // "formula" always uses the deterministic math-only reranker, no network call.
+  rerankMode: RerankMode;
+
   reset: () => void;
   upload: (file: File) => Promise<void>;
   setAutoRunMode: (auto: boolean) => void;
+  setRerankMode: (mode: RerankMode) => void;
   runStep: (step: Exclude<StepKey, "upload">) => Promise<void>;
   runAll: () => Promise<void>;
   isReady: (step: StepKey) => boolean;
@@ -81,9 +88,10 @@ export const usePipelineStore = create<PipelineState>((set, get) => ({
   rerank: null,
   final: null,
   autoRunMode: true,
+  rerankMode: "llm",
 
-  // Note: `autoRunMode` is intentionally left out of reset()/upload()'s cleared fields --
-  // it is a user preference for how the pipeline behaves, not per-job state.
+  // Note: `autoRunMode`/`rerankMode` are intentionally left out of reset()/upload()'s cleared
+  // fields -- they are user preferences for how the pipeline behaves, not per-job state.
   reset: () =>
     set({
       jobId: null,
@@ -131,6 +139,7 @@ export const usePipelineStore = create<PipelineState>((set, get) => ({
   },
 
   setAutoRunMode: (auto) => set({ autoRunMode: auto }),
+  setRerankMode: (mode) => set({ rerankMode: mode }),
 
   runStep: async (step) => {
     const { jobId } = get();
@@ -165,7 +174,7 @@ export const usePipelineStore = create<PipelineState>((set, get) => ({
           break;
         }
         case "rerank": {
-          const res = await runRerankStep(jobId);
+          const res = await runRerankStep(jobId, get().rerankMode);
           set((state) => ({
             rerank: res,
             steps: { ...state.steps, rerank: { status: "completed", latencyMs: res.latency_ms } },

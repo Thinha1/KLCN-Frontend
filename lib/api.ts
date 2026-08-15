@@ -3,6 +3,7 @@ import type {
   ClipScoreStepResponse,
   DetectStepResponse,
   FinalStepResponse,
+  RerankMode,
   RerankPromptPreview,
   RerankStepResponse,
   UploadResponse,
@@ -66,8 +67,8 @@ export const runDetectStep = (jobId: string, signal?: AbortSignal) =>
 export const runClipScoreStep = (jobId: string, signal?: AbortSignal) =>
   post<ClipScoreStepResponse>(`/api/jobs/${jobId}/steps/clipscore`, signal);
 
-export const runRerankStep = (jobId: string, prompt?: string, signal?: AbortSignal) =>
-  post<RerankStepResponse>(`/api/jobs/${jobId}/steps/rerank`, signal, { prompt: prompt || null });
+export const runRerankStep = (jobId: string, mode: RerankMode = "llm", prompt?: string, signal?: AbortSignal) =>
+  post<RerankStepResponse>(`/api/jobs/${jobId}/steps/rerank`, signal, { mode, prompt: prompt || null });
 
 export const getRerankPromptPreview = (jobId: string, signal?: AbortSignal) =>
   get<RerankPromptPreview>(`/api/jobs/${jobId}/steps/rerank/prompt`, signal);
