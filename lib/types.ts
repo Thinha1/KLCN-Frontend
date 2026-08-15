@@ -62,7 +62,6 @@ export interface FormulaBreakdownOut {
   s_base: number;
   s_align: number;
   s_belief: number;
-  s_conf: number;
 }
 
 export interface RankingOut {

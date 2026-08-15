@@ -12,7 +12,6 @@ const BREAKDOWN_TERMS: { key: keyof FormulaBreakdownOut; label: string }[] = [
   { key: "s_base", label: "Base" },
   { key: "s_align", label: "Align" },
   { key: "s_belief", label: "Belief" },
-  { key: "s_conf", label: "Conf" },
 ];
 
 // Breakdown values are already min-max normalized to [0, 1] across the candidate set (see
@@ -26,7 +25,7 @@ function breakdownColor(value: number): string {
 
 function FormulaBreakdownBars({ breakdown }: { breakdown: FormulaBreakdownOut }) {
   return (
-    <div className="mt-1 grid grid-cols-4 gap-1.5">
+    <div className="mt-1 grid grid-cols-3 gap-1.5">
       {BREAKDOWN_TERMS.map(({ key, label }) => {
         const value = breakdown[key];
         return (
@@ -136,7 +135,7 @@ export default function ReasoningNode({ selected }: { selected?: boolean }) {
           <p className="text-[10px] text-gray-400">
             {rerankMode === "llm"
               ? "Gọi LLM để chọn chú thích tốt nhất (tự rơi về Formula nếu LLM lỗi/chưa cấu hình)."
-              : "Công thức toán học (CLIPScore + object belief + độ tự tin token), không gọi mạng."}
+              : "Công thức toán học (độ tin cậy caption + CLIPScore + object belief), không gọi mạng."}
           </p>
         </div>
 
